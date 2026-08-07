@@ -65,6 +65,15 @@ python manage.py regeocode                  # re-resolve locations (no LLM cost)
 python manage.py reextract [--limit N]      # re-run the LLM on stored posts
 python manage.py serve [--reload]
 python manage.py reset --yes                # drop all tables
+
+# Erasure request. Deletes now *and* records it, because the post is still
+# live on Reddit and the next scrape would otherwise put it straight back.
+# Takes a permalink or a bare id.
+python manage.py suppress --post https://reddit.com/r/x/comments/abc123/t/ \
+                          --reason "emailed 2026-08-07"
+python manage.py suppress --author someone  # them, and any post they make later
+
+python manage.py purge [--days N]           # retention sweep, default RETENTION_DAYS
 ```
 
 ## How it fits together
@@ -239,6 +248,51 @@ so that's what the safeguards target.
 
 The rate limiter is in-process, so it resets on restart and doesn't span
 workers. Behind a reverse proxy or multiple workers, enforce it there instead.
+
+## Personal data
+
+Most of the personal data here belongs to people who never submitted it and do
+not know this exists. That's the central fact about this app, so the handling is
+part of the design rather than a policy bolted on afterwards.
+
+**In the code:**
+
+- The Reddit **username is never served** — excluded from the response model, not
+  merely left out by habit. The per-person id is a keyed HMAC, so it can't be
+  reversed with a username wordlist.
+- **No special-category data is inferred.** The interest vocabulary deliberately
+  omits health, mental health, sexuality, religion, ethnicity and politics, all
+  of which appear in the posts. Loneliness and mental health were *measured* at
+  9.2% of posts and still left out; see `INTEREST_VOCAB` in `app/models.py`.
+- **Nothing is indexable**: `noindex, nofollow, noarchive` as a meta tag and a
+  response header, plus a `robots.txt` disallow. One public post is one public
+  post; several hundred sorted by age, city and interest is a different artefact.
+- **No third-party requests at all.** Inter is self-hosted; no analytics, no
+  pixels, no font CDN. Nothing reaches out on a visitor's behalf, which is also
+  why there's no consent banner. Google Fonts used to be loaded from Google,
+  which sent every visitor's IP to a third party before the page had asked
+  anyone anything.
+- **Erasure is durable.** `manage.py suppress` deletes *and* records the request
+  in `suppressions`, which `upsert_posts` honours — so tomorrow's scrape can't
+  undo it. Deleting the row alone only works until 06:30.
+- **Retention is enforced, not implied.** `RETENTION_DAYS` (default 180) deletes
+  old posts outright in the daily job. Hiding after 30 days is not erasing.
+- **Signed-in users** can export everything (`/api/me/export`) and delete their
+  account, which cascades.
+
+**Set before this is publicly reachable:** `CONTROLLER_NAME` and
+`PRIVACY_CONTACT`. Without them `/privacy` states that the deployment has no
+controller — the honest failure mode, but not one to ship.
+
+**Documents:** the notice is served at `/privacy`, server-rendered so it works as
+a direct link for the Google OAuth consent screen. The Art. 6(1)(f) balancing
+test is
+[docs/legitimate-interest-assessment.md](docs/legitimate-interest-assessment.md),
+including what's still unresolved — how minors are treated, and the reliance on
+Art. 14(5)(b) for individual notice.
+
+**Still outstanding:** no data-processing agreement with NVIDIA or Resend, which
+receive post text and email addresses respectively.
 
 ## Deploying to Render
 
@@ -459,3 +513,9 @@ change what the suite sees.
 - No formatter is enforced. `ruff format` would reflow a codebase whose manual
   alignment is deliberate, so `ruff check` runs without it.
 - Mobile layout (bottom sheet) from the UX spec isn't built; desktop only.
+- **Minors aren't treated differently.** Age is extracted and some posters state
+  an age under 18. They're currently handled like anyone else by omission rather
+  than by decision — see the open questions in the LIA.
+- **`needs_review` is recorded and then ignored.** Low-confidence extractions are
+  flagged and displayed anyway.
+- No DPA with NVIDIA or Resend, both of which process personal data.

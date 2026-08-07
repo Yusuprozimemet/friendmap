@@ -66,6 +66,12 @@ def run_daily(
             store.mark_deleted(session, gone)
             print(f"  checked {len(stale)} permalinks, {len(gone)} now deleted")
 
+        # Retention before alerts, so a digest can never announce somebody the
+        # same run is about to delete.
+        purged = store.purge_old_posts(session, config.RETENTION_DAYS)
+        if purged:
+            print(f"  purged {purged} post(s) past {config.RETENTION_DAYS} days")
+
         # Alerts last: they should only ever consider people already stored.
         sent = alerts.run_alerts(session)
         if sent:

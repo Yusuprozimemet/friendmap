@@ -248,3 +248,36 @@ class AlertSent(Base):
     )
     person_key: Mapped[str] = mapped_column(String(24), primary_key=True)
     sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class Suppression(Base):
+    """A post or person that must never appear again.
+
+    Deleting the row is not enough to honour an erasure request: the post is
+    still live on Reddit, so the next daily scrape finds it and inserts it
+    straight back. This table is what makes a removal stick — `upsert_posts`
+    checks it and skips anything listed.
+
+    Two granularities, because requests come in both shapes. `reddit_id`
+    removes one post; `person_key` removes a person, including posts they have
+    not written yet, which is what someone means by "take me off this site".
+    The person is stored as the same keyed HMAC used everywhere else, so
+    honouring the request does not require keeping their username on file.
+
+    `deleted_at` on the post is deliberately left in place alongside this: the
+    suppression records *why* something is gone and that it must stay gone.
+    """
+
+    __tablename__ = "suppressions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    reddit_id: Mapped[str | None] = mapped_column(String(20), index=True)
+    person_key: Mapped[str | None] = mapped_column(String(24), index=True)
+    #: Free text for the operator: how the request arrived, so a later question
+    #: about why a post vanished has an answer. Not shown to anyone.
+    reason: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (
+        UniqueConstraint("reddit_id", "person_key", name="uq_suppression_target"),
+    )

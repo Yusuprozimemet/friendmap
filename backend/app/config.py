@@ -106,6 +106,23 @@ SMTP_SSL = os.getenv("SMTP_SSL", "false").lower() == "true"
 
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
 
+# --- Transparency and retention -------------------------------------------
+# This app processes personal data about people who never submitted it and do
+# not know it exists, so GDPR Art. 14 applies: the notice at /privacy has to
+# name a controller and give a way to reach them. Deliberately unset by
+# default rather than defaulted to something plausible — a notice naming the
+# wrong person is worse than one that admits it isn't configured, and /privacy
+# says so in as many words when these are blank.
+CONTROLLER_NAME = os.getenv("CONTROLLER_NAME", "")
+PRIVACY_CONTACT = os.getenv("PRIVACY_CONTACT", "")
+
+#: Art. 5(1)(e): personal data may not be kept longer than necessary. Posts
+#: older than this are deleted outright by the daily job, along with everything
+#: derived from them. The UI already hides posts past 30 days, but hiding is not
+#: erasing. 0 disables the purge, which is a choice an operator has to make
+#: deliberately rather than inherit.
+RETENTION_DAYS = int(os.getenv("RETENTION_DAYS", "180"))
+
 #: Never let one person's saved searches turn the nightly job into a scraper.
 MAX_SAVED_SEARCHES = int(os.getenv("MAX_SAVED_SEARCHES", "5"))
 #: How many people a single digest lists before it just says "and N more".

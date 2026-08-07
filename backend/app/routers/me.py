@@ -275,3 +275,72 @@ def delete_search(
     session.delete(row)
     session.commit()
     return {"deleted": True}
+
+
+@router.get("/export")
+def export_my_data(
+    user: User = Depends(require_user),
+    session: Session = Depends(get_session),
+) -> dict:
+    """Everything this account holds, as JSON. GDPR Art. 20 (portability).
+
+    Deliberately the raw rows rather than a rendered view: the point is that
+    the data leaves in a form another tool can read, not that it looks nice.
+
+    Note what is *not* here — the people on the map. Their entries are not this
+    user's personal data, and a saved list is exported as the opaque
+    `person_key` plus whatever note the user wrote themselves. Exporting other
+    people's profiles because someone bookmarked them would turn a portability
+    request into a data dump about third parties.
+    """
+    people = session.scalars(
+        select(UserPerson).where(UserPerson.user_id == user.id)
+    ).all()
+    searches = session.scalars(
+        select(SavedSearch).where(SavedSearch.user_id == user.id)
+    ).all()
+    profile = session.get(UserProfile, user.id)
+
+    return {
+        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "account": {
+            "email": user.email,
+            "name": user.name,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "last_login_at": (
+                user.last_login_at.isoformat() if user.last_login_at else None
+            ),
+        },
+        "my_profile": (
+            None if profile is None else {
+                "age": profile.age,
+                "city": profile.city,
+                "province": profile.province,
+                "interests": profile.interests,
+                "age_min": profile.age_min,
+                "age_max": profile.age_max,
+                "updated_at": profile.updated_at.isoformat(),
+            }
+        ),
+        "saved_people": [
+            {
+                "person_key": p.person_key,
+                "saved": p.saved,
+                "status": p.status,
+                "note": p.note,
+                "created_at": p.created_at.isoformat(),
+                "updated_at": p.updated_at.isoformat(),
+            }
+            for p in people
+        ],
+        "saved_searches": [
+            {
+                "name": s.name,
+                "filters": s.filters,
+                "cadence": s.cadence,
+                "created_at": s.created_at.isoformat(),
+                "last_run_at": s.last_run_at.isoformat() if s.last_run_at else None,
+            }
+            for s in searches
+        ],
+    }

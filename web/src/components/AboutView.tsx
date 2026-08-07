@@ -14,6 +14,10 @@ const heading: React.CSSProperties = {
   margin: "28px 0 10px",
 };
 
+// Plain anchor, not target="_blank": /privacy is served by this app, so it is
+// the same origin and opening a new tab would be gratuitous.
+const link: React.CSSProperties = { color: C.accent };
+
 export function AboutView({ subreddits }: { subreddits: string[] }) {
   const links = subreddits.map((s, i) => (
     <span key={s}>
@@ -81,8 +85,23 @@ export function AboutView({ subreddits }: { subreddits: string[] }) {
         <div style={heading}>I want my post removed</div>
         <div style={para}>
           Delete the original post on Reddit — it will be purged from FriendMap NL
-          within a day. If you need it gone sooner, reach out and it'll be removed
-          by hand.
+          within a day. Or ask directly, using the contact address on the{" "}
+          <a href="/privacy" style={link}>
+            privacy page
+          </a>
+          : a requested removal is permanent, because it's recorded so later
+          scrapes can't put it back. You don't have to give a reason.
+        </div>
+
+        <div style={heading}>What's held, and on what basis</div>
+        <div style={para}>
+          The{" "}
+          <a href="/privacy" style={link}>
+            privacy notice
+          </a>{" "}
+          covers all of it: what's extracted, what's deliberately not (no health,
+          sexuality, religion or ethnicity — ever), who processes it, how long
+          it's kept, and your rights. Usernames are never published by this site.
         </div>
       </div>
     </div>

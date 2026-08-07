@@ -1,12 +1,20 @@
 """Database writes for the ingest side."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import INTEREST_VOCAB, Interest, Place, Post, Profile
+from app.identity import person_key
+from app.models import (
+    INTEREST_VOCAB,
+    Interest,
+    Place,
+    Post,
+    Profile,
+    Suppression,
+)
 from ingest import places as gazetteer
 from ingest.extractor import Extracted
 
@@ -33,12 +41,37 @@ def seed_reference(session: Session) -> tuple[int, int]:
     return added_places, added_interests
 
 
+def suppressed_targets(session: Session) -> tuple[set[str], set[str]]:
+    """(post ids, person keys) that must never be stored again."""
+    rows = session.execute(
+        select(Suppression.reddit_id, Suppression.person_key)
+    ).all()
+    ids = {r[0] for r in rows if r[0]}
+    keys = {r[1] for r in rows if r[1]}
+    return ids, keys
+
+
 def upsert_posts(session: Session, posts: list[dict]) -> list[str]:
     """Insert unseen posts, refresh last_seen_at on known ones.
 
     Returns the ids of posts that are new (i.e. still need extraction).
     """
     now = datetime.now(timezone.utc)
+
+    # Erasure is enforced here rather than at read time, because the scrape is
+    # what would otherwise undo it: the post is still live on Reddit, so
+    # deleting the row only removes it until tomorrow morning.
+    dropped_ids, dropped_keys = suppressed_targets(session)
+    if dropped_ids or dropped_keys:
+        before = len(posts)
+        posts = [
+            p for p in posts
+            if p["id"] not in dropped_ids
+            and person_key(p.get("author") or "") not in dropped_keys
+        ]
+        if len(posts) < before:
+            print(f"  {before - len(posts)} suppressed post(s) skipped")
+
     ids = [p["id"] for p in posts]
     known = set(
         session.scalars(select(Post.reddit_id).where(Post.reddit_id.in_(ids))).all()
@@ -138,3 +171,79 @@ def mark_deleted(session: Session, post_ids: list[str]) -> None:
         .values(deleted_at=datetime.now(timezone.utc))
     )
     session.commit()
+
+
+def suppress(
+    session: Session,
+    *,
+    reddit_id: str | None = None,
+    author: str | None = None,
+    reason: str = "",
+) -> tuple[int, int]:
+    """Honour an erasure request: delete now, and record so it stays deleted.
+
+    Returns (posts deleted, suppression rows added). Give a `reddit_id` to
+    remove one post, or an `author` to remove a person entirely — including
+    posts they have not written yet, which is what "take me off this site"
+    means. The author is converted to its keyed HMAC immediately and the
+    username is never stored.
+
+    Deleting the rows without recording the suppression would be undone by the
+    next scrape, because the post is still live on Reddit.
+    """
+    if not reddit_id and not author:
+        raise ValueError("suppress needs either reddit_id or author")
+
+    key = person_key(author) if author else None
+    if author and not key:
+        raise ValueError(
+            "cannot suppress by author without PERSON_KEY_SECRET set — the key "
+            "would not match the one the scrape computes"
+        )
+
+    now = datetime.now(timezone.utc)
+    added = 0
+    exists = session.scalar(
+        select(Suppression).where(
+            Suppression.reddit_id.is_(reddit_id), Suppression.person_key.is_(key)
+        )
+    )
+    if exists is None:
+        session.add(
+            Suppression(
+                reddit_id=reddit_id, person_key=key, reason=reason, created_at=now
+            )
+        )
+        added = 1
+
+    # Remove what is already stored. Profiles cascade from posts.
+    stmt = select(Post)
+    if reddit_id:
+        stmt = stmt.where(Post.reddit_id == reddit_id)
+    else:
+        # The author column is still present locally; match on it directly
+        # rather than recomputing keys for every row.
+        stmt = stmt.where(Post.author == (author or "").strip())
+    doomed = session.scalars(stmt).all()
+    for post in doomed:
+        session.delete(post)
+
+    session.commit()
+    return len(doomed), added
+
+
+def purge_old_posts(session: Session, older_than_days: int) -> int:
+    """Delete posts past the retention window. Returns how many went.
+
+    Art. 5(1)(e): the UI hiding posts after 30 days is not the same as not
+    keeping them. Profiles and interest links cascade from the post, so this is
+    one delete per row rather than a manual sweep of every derived table.
+    """
+    if older_than_days <= 0:
+        return 0
+    cutoff = datetime.now(timezone.utc) - timedelta(days=older_than_days)
+    doomed = session.scalars(select(Post).where(Post.posted_at < cutoff)).all()
+    for post in doomed:
+        session.delete(post)
+    session.commit()
+    return len(doomed)

@@ -7,9 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.responses import PlainTextResponse
+from starlette.responses import HTMLResponse, PlainTextResponse
 
-from app import alerts, auth, config
+from app import alerts, auth, config, privacy
 from app.db import get_session
 from app.models import SavedSearch
 from app.ratelimit import RateLimitMiddleware
@@ -95,6 +95,19 @@ def unsubscribe(token: str, session: Session = Depends(get_session)) -> str:
         f'Alerts for "{row.name}" are off. '
         "You can turn them back on from your account page."
     )
+
+
+@app.get("/privacy", response_class=HTMLResponse, include_in_schema=False)
+def privacy_notice() -> str:
+    """The Art. 13/14 notice.
+
+    Server-rendered, not a React route: the bundle is mounted with html=True
+    and the app has no client-side router, so a /privacy handled in the SPA
+    would 404 on a direct hit — and a direct hit is the only kind this URL
+    gets. It goes in the Google OAuth consent screen, in alert emails, and in
+    replies to removal requests.
+    """
+    return privacy.render()
 
 
 @app.get("/healthz", response_class=PlainTextResponse, include_in_schema=False)

@@ -27,9 +27,12 @@ ignore = [
     # codebase uses `timezone.utc` throughout; rewriting 20-odd call sites to
     # satisfy a linter added afterwards is churn, not a fix.
     "UP017",
-    # Flags ×, →, — in docstrings as "ambiguous unicode". They're deliberate
-    # here (the comments describe UI copy that uses them) and the suggested
-    # ASCII replacements would be wrong.
+    # Flags ×, →, —, – as "ambiguous unicode" in strings, docstrings and
+    # comments. They are deliberate: the comments describe UI copy that uses
+    # them, and app/privacy.py contains user-facing prose where the ASCII
+    # substitutes would be wrong — "EU–US Data Privacy Framework" is spelt with
+    # an en dash because that is the instrument's name.
+    "RUF001",
     "RUF002",
     "RUF003",
 ]

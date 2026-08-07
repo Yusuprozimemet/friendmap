@@ -21,11 +21,17 @@
          sit against it in a clashing colour. -->
     <meta name="theme-color" content="#FAF6F0" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Inter is served from this origin (see src/index.css). Nothing here
+         contacts a third party: no font CDN, no analytics, no pixels — so the
+         page makes no request a visitor hasn't asked for, and there is no
+         consent banner to need. Preloading the latin subset because it is on
+         the critical path for first paint. -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
+      rel="preload"
+      href="/fonts/inter-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
     />
   </head>
   <body>
