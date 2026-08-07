@@ -264,7 +264,121 @@ place that isn't one.
 
 ---
 
-## 5. Ranking is a sort, never a filter
+## 5. How the frontend and backend talk
+
+REST and JSON over **relative** paths. No GraphQL, no WebSockets, no
+server-side rendering. The notable property is that the browser is **always on
+one origin**, arrived at two different ways:
+
+```mermaid
+flowchart LR
+  subgraph dev["Development"]
+    direction LR
+    BD["Browser"] --> V["Vite :5173"]
+    V -->|"proxy /api"| U["uvicorn :8000"]
+  end
+  subgraph prod["Production"]
+    direction LR
+    BP["Browser"] --> F["FastAPI :8000"]
+    F -->|"/api/*"| R["routers"]
+    F -->|"/"| S["built bundle<br/>StaticFiles, mounted last"]
+  end
+  style dev fill:#F5F0E6,stroke:#DCD3C4
+  style prod fill:#E4F0EC,stroke:#A9CFC5
+```
+
+Because of that, no base URL appears anywhere in the frontend — it calls
+`fetch("/api/profiles?…")` and that is the whole client configuration. CORS
+never enters the hot path; the `CORSMiddleware` in `main.py` is a development
+affordance and nothing more.
+
+### Auth is a cookie, not a token
+
+Every call passes `credentials: "same-origin"`. The session is a signed,
+`HttpOnly`, `SameSite=Lax` cookie, `Secure` whenever `WEB_ORIGIN` is https —
+so there is no token in JavaScript for an XSS to read, and no `Authorization`
+header to plumb through.
+
+Sign-in is the one exception: **a full-page redirect, not a fetch**, because an
+OAuth round trip cannot happen inside `fetch`. `startGoogleLogin()` sets
+`window.location` and passes the current view as `next`, so the user lands back
+where they were. `SameSite=Lax` is precisely what lets the cookie survive
+Google's top-level redirect back.
+
+### The client cache carries most of the design
+
+TanStack Query, configured once in `main.tsx`: `staleTime` 60s,
+`refetchOnWindowFocus: false`, `retry: 1`.
+
+- **The query key *is* the query string.**
+  `queryKey: ["profiles", filtersToParams(debouncedFilters).toString()]` — so a
+  filter change is a new key and refetches automatically, and any combination
+  already seen comes back from cache with no request.
+- **`filtersToParams` has two consumers**: it builds the request *and* is
+  mirrored into the address bar with `history.replaceState`. One function, so a
+  shared URL reproduces exactly the API call it came from. The address bar, not
+  React state, is the source of truth for filters.
+- **Debounced and cancellable.** Filters are debounced 250ms before reaching the
+  query key, so dragging the age slider doesn't fire a request per pixel, and
+  React Query's `AbortSignal` is threaded into `fetch` so superseded requests
+  are actually cancelled. `placeholderData: (prev) => prev` keeps the previous
+  list on screen while refetching instead of flashing empty.
+- **Queries that cannot work are never sent.** `/api/auth/me` is gated on
+  `enabled: authConfigQuery.data?.enabled === true`, and the signed-in
+  endpoints on `enabled: !!meQuery.data`. With auth switched off the app makes
+  no doomed requests.
+- **Writes are optimistic.** Bookmarking updates the cache before the server
+  answers — "a bookmark that lags behind the click feels broken" — snapshots the
+  previous value, rolls back on error, and on settle invalidates *both*
+  `my-people` and `profiles`, because hiding someone changes who the map should
+  show.
+
+Errors: the `get` helper throws on a non-2xx; the `send` helper additionally
+unwraps FastAPI's `{"detail": …}`, so a 409 arrives as *"You already have 5
+saved searches"* rather than "409 Conflict".
+
+### The seam, and how it is held shut
+
+`web/src/types.ts` mirrors the Pydantic response models **by hand**. That reads
+well, but on its own nothing checks the two declarations agree: rename a field
+in `schemas.py` and TypeScript keeps compiling against the old name. It was the
+one place a change could pass both CI jobs and still break the app at runtime.
+
+Three pieces close it:
+
+| File | Generated from | Purpose |
+| --- | --- | --- |
+| `web/src/api-schema.json` | `backend/scripts/dump_openapi.py` | the server's own OpenAPI document, committed |
+| `web/src/api-types.ts` | `npm run api:types` | types generated from that schema |
+| `web/src/api-contract.ts` | hand-written | asserts `types.ts` and the generated types declare the same fields |
+
+The assertions compare **field names, not value types**, deliberately. The
+client narrows some fields the schema leaves wide — `gender` is `string` in
+OpenAPI but a union in `types.ts`, because the server constrains it to a closed
+vocabulary that OpenAPI does not express. Demanding full structural equality
+would flag those narrowings as errors and the file would end up disabled.
+Names catch the drift that actually breaks things.
+
+A rename now fails the typecheck with the offending field named in the error:
+
+```
+src/api-contract.ts(51,7): error TS2322: Type 'boolean' is not assignable
+  to type '{ missingFromSecond: "summaryText"; }'.
+```
+
+CI checks each half in the job that has the toolchain for it: the `api` job
+regenerates the schema and fails if it differs from the committed copy; the
+`web` job regenerates the types and fails if *they* differ. Together they mean
+the contract file is asserting against something current rather than a snapshot
+that quietly stopped being true.
+
+Both generated files are type-only, so they add nothing to the bundle.
+
+The first thing this check found, on the run that introduced it, was a
+`new_matches` field on `SavedSearchOut` that nothing ever assigned and the
+frontend never read — the API advertising a count that was always zero.
+
+## 6. Ranking is a sort, never a filter
 
 `app/ranking.py` scores overlap between two lists of self-declared facts:
 interests ×3.0, place ×2.0, age ×1.0, recency ×0.5. Nobody is ever removed for
@@ -281,7 +395,7 @@ half of that invariant.
 
 ---
 
-## 6. Failure modes
+## 7. Failure modes
 
 The interesting part of this system is what happens when something is broken, and
 most of it has been observed rather than imagined.
@@ -299,7 +413,7 @@ most of it has been observed rather than imagined.
 
 ---
 
-## 7. Module map
+## 8. Module map
 
 ```
 backend/
@@ -342,7 +456,7 @@ advice.
 
 ---
 
-## 8. Deliberately absent
+## 9. Deliberately absent
 
 Each of these is a decision, not an omission:
 
@@ -366,7 +480,7 @@ Each of these is a decision, not an omission:
 
 ---
 
-## 9. Testing shape
+## 10. Testing shape
 
 The backend suite runs on **SQLite**, not Postgres: `tests/conftest.py` points the
 engine at a temporary file before `app.db` is imported. The schema uses no

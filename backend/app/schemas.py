@@ -92,13 +92,22 @@ class UserProfileIn(BaseModel):
 
 
 class SavedSearchOut(BaseModel):
+    """A saved search as the account page shows it.
+
+    There was a `new_matches: int = 0` here. Nothing ever assigned it and the
+    frontend never read it, so the API advertised a count that was always zero —
+    the schema promising a capability that did not exist. Removed rather than
+    implemented: "new since you last looked" needs a decision about what the
+    user has *seen*, which is not the same as what the last digest announced,
+    and `alerts_sent` only records the latter.
+    """
+
     id: int
     name: str
     filters: dict
     cadence: str
     last_run_at: datetime | None
     last_match_at: datetime | None
-    new_matches: int = 0
 
 
 class SavedSearchIn(BaseModel):

@@ -76,6 +76,18 @@ jobs:
       - name: Unit tests
         run: pytest
 
+      # The frontend's types are generated from this schema, so a change to a
+      # response model that isn't committed here would leave the two halves
+      # disagreeing with nothing to catch it. Needs no server or database —
+      # app.openapi() is an ordinary function.
+      - name: OpenAPI schema is up to date
+        run: |
+          python scripts/dump_openapi.py
+          if ! git diff --exit-code --stat ../web/src/api-schema.json; then
+            echo "::error::A response model changed but web/src/api-schema.json was not regenerated. Run: python backend/scripts/dump_openapi.py && (cd web && npm run api:types)"
+            exit 1
+          fi
+
       - name: Schema + seed
         env:
           # Deliberately the bare postgresql:// form a managed host hands out,
@@ -124,6 +136,22 @@ jobs:
       - name: Lint
         run: npm run lint -- --max-warnings 0
 
+      # Pairs with the api job's schema check. That one proves the schema
+      # matches the server; this proves the generated types match the schema.
+      # Together they mean src/api-contract.ts is asserting against something
+      # current, rather than against a snapshot that stopped being true.
+      - name: Generated API types are up to date
+        run: |
+          npm run api:types
+          if ! git diff --exit-code --stat src/api-types.ts; then
+            echo "::error::src/api-types.ts is stale. Run: npm run api:types"
+            exit 1
+          fi
+
+      # Where a drift actually fails: src/api-contract.ts asserts the
+      # hand-written types in types.ts declare the same fields as the generated
+      # ones, so a renamed response field is a compile error rather than an
+      # undefined at runtime.
       - name: Typecheck
         run: npm run typecheck
 

@@ -1,0 +1,1874 @@
+{
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthOut": {
+        "properties": {
+          "newest_post_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Newest Post At"
+          },
+          "posts": {
+            "title": "Posts",
+            "type": "integer"
+          },
+          "profiles": {
+            "title": "Profiles",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "posts",
+          "profiles",
+          "newest_post_at"
+        ],
+        "title": "HealthOut",
+        "type": "object"
+      },
+      "InterestCount": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "count"
+        ],
+        "title": "InterestCount",
+        "type": "object"
+      },
+      "LabelCount": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "count"
+        ],
+        "title": "LabelCount",
+        "type": "object"
+      },
+      "PersonOut": {
+        "properties": {
+          "age": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "days_ago": {
+            "title": "Days Ago",
+            "type": "integer"
+          },
+          "gender": {
+            "title": "Gender",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "interests": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Interests",
+            "type": "array"
+          },
+          "lang": {
+            "title": "Lang",
+            "type": "string"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "lon": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lon"
+          },
+          "looking_for": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Looking For"
+          },
+          "match_reasons": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Match Reasons",
+            "type": "array"
+          },
+          "match_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Match Score"
+          },
+          "needs_review": {
+            "title": "Needs Review",
+            "type": "boolean"
+          },
+          "permalink": {
+            "title": "Permalink",
+            "type": "string"
+          },
+          "person_key": {
+            "default": "",
+            "title": "Person Key",
+            "type": "string"
+          },
+          "posted_at": {
+            "format": "date-time",
+            "title": "Posted At",
+            "type": "string"
+          },
+          "precision": {
+            "title": "Precision",
+            "type": "string"
+          },
+          "province": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Province"
+          },
+          "repeat_count": {
+            "title": "Repeat Count",
+            "type": "integer"
+          },
+          "subreddit": {
+            "title": "Subreddit",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "x": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "X"
+          },
+          "y": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Y"
+          }
+        },
+        "required": [
+          "id",
+          "subreddit",
+          "age",
+          "gender",
+          "city",
+          "province",
+          "precision",
+          "lat",
+          "lon",
+          "x",
+          "y",
+          "posted_at",
+          "days_ago",
+          "lang",
+          "title",
+          "body",
+          "summary",
+          "looking_for",
+          "interests",
+          "permalink",
+          "repeat_count",
+          "needs_review"
+        ],
+        "title": "PersonOut",
+        "type": "object"
+      },
+      "PersonStateIn": {
+        "description": "Partial update. Unset fields keep their stored value.",
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "saved": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Saved"
+          },
+          "set_status": {
+            "default": false,
+            "title": "Set Status",
+            "type": "boolean"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "PersonStateIn",
+        "type": "object"
+      },
+      "PersonStateOut": {
+        "properties": {
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "person_key": {
+            "title": "Person Key",
+            "type": "string"
+          },
+          "saved": {
+            "title": "Saved",
+            "type": "boolean"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "person_key",
+          "saved",
+          "status",
+          "note",
+          "updated_at"
+        ],
+        "title": "PersonStateOut",
+        "type": "object"
+      },
+      "ProfileListOut": {
+        "properties": {
+          "people": {
+            "items": {
+              "$ref": "#/components/schemas/PersonOut"
+            },
+            "title": "People",
+            "type": "array"
+          },
+          "placed": {
+            "title": "Placed",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "unplaced": {
+            "title": "Unplaced",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "placed",
+          "unplaced",
+          "people"
+        ],
+        "title": "ProfileListOut",
+        "type": "object"
+      },
+      "SavedSearchIn": {
+        "properties": {
+          "cadence": {
+            "default": "weekly",
+            "title": "Cadence",
+            "type": "string"
+          },
+          "filters": {
+            "title": "Filters",
+            "type": "object"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "filters"
+        ],
+        "title": "SavedSearchIn",
+        "type": "object"
+      },
+      "SavedSearchOut": {
+        "description": "A saved search as the account page shows it.\n\nThere was a `new_matches: int = 0` here. Nothing ever assigned it and the\nfrontend never read it, so the API advertised a count that was always zero —\nthe schema promising a capability that did not exist. Removed rather than\nimplemented: \"new since you last looked\" needs a decision about what the\nuser has *seen*, which is not the same as what the last digest announced,\nand `alerts_sent` only records the latter.",
+        "properties": {
+          "cadence": {
+            "title": "Cadence",
+            "type": "string"
+          },
+          "filters": {
+            "title": "Filters",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "last_match_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Match At"
+          },
+          "last_run_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "filters",
+          "cadence",
+          "last_run_at",
+          "last_match_at"
+        ],
+        "title": "SavedSearchOut",
+        "type": "object"
+      },
+      "SavedSearchPatch": {
+        "properties": {
+          "cadence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cadence"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "SavedSearchPatch",
+        "type": "object"
+      },
+      "StatsOut": {
+        "properties": {
+          "active_30d": {
+            "title": "Active 30D",
+            "type": "integer"
+          },
+          "age_buckets": {
+            "items": {
+              "$ref": "#/components/schemas/LabelCount"
+            },
+            "title": "Age Buckets",
+            "type": "array"
+          },
+          "cities_covered": {
+            "title": "Cities Covered",
+            "type": "integer"
+          },
+          "interest_counts": {
+            "items": {
+              "$ref": "#/components/schemas/LabelCount"
+            },
+            "title": "Interest Counts",
+            "type": "array"
+          },
+          "median_age": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Age"
+          },
+          "new_this_week": {
+            "title": "New This Week",
+            "type": "integer"
+          },
+          "newest_post_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Newest Post At"
+          },
+          "posts_per_week": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Posts Per Week",
+            "type": "array"
+          },
+          "top_cities": {
+            "items": {
+              "$ref": "#/components/schemas/LabelCount"
+            },
+            "title": "Top Cities",
+            "type": "array"
+          }
+        },
+        "required": [
+          "active_30d",
+          "new_this_week",
+          "cities_covered",
+          "median_age",
+          "posts_per_week",
+          "top_cities",
+          "interest_counts",
+          "age_buckets",
+          "newest_post_at"
+        ],
+        "title": "StatsOut",
+        "type": "object"
+      },
+      "UserOut": {
+        "description": "What the browser is told about the signed-in account. Nothing more.",
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "picture": {
+            "title": "Picture",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "picture"
+        ],
+        "title": "UserOut",
+        "type": "object"
+      },
+      "UserProfileIn": {
+        "properties": {
+          "age": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "age_max": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Max"
+          },
+          "age_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Min"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "interests": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Interests",
+            "type": "array"
+          },
+          "province": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Province"
+          }
+        },
+        "title": "UserProfileIn",
+        "type": "object"
+      },
+      "UserProfileOut": {
+        "description": "The viewer's own self-description, used only for match ranking.",
+        "properties": {
+          "age": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "age_max": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Max"
+          },
+          "age_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Min"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "interests": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Interests",
+            "type": "array"
+          },
+          "province": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Province"
+          }
+        },
+        "required": [
+          "age",
+          "city",
+          "province",
+          "interests",
+          "age_min",
+          "age_max"
+        ],
+        "title": "UserProfileOut",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "WritingTipsOut": {
+        "description": "Measured gaps in the corpus, for the post composer.\n\nNote what is absent: any claim about which posts got replies. The feed\ncarries no comment count, so that would be invention.",
+        "properties": {
+          "gaps": {
+            "items": {
+              "$ref": "#/components/schemas/LabelCount"
+            },
+            "title": "Gaps",
+            "type": "array"
+          },
+          "median_length": {
+            "title": "Median Length",
+            "type": "integer"
+          },
+          "sample_size": {
+            "title": "Sample Size",
+            "type": "integer"
+          },
+          "top_interests": {
+            "items": {
+              "$ref": "#/components/schemas/LabelCount"
+            },
+            "title": "Top Interests",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sample_size",
+          "gaps",
+          "median_length",
+          "top_interests"
+        ],
+        "title": "WritingTipsOut",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Structured, mapped view of public Dutch friend-finding subreddits.",
+    "title": "FriendMap NL",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/alerts/unsubscribe": {
+      "get": {
+        "description": "One click, no login — the link has to work from an email client.\n\nThe token is signed and names a single saved search, so it can only ever\nswitch off the one it was minted for.",
+        "operationId": "unsubscribe_api_alerts_unsubscribe_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Unsubscribe"
+      }
+    },
+    "/api/auth/config": {
+      "get": {
+        "description": "Lets the UI hide the sign-in button when the server can't honour it.",
+        "operationId": "auth_config_api_auth_config_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Auth Config Api Auth Config Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Auth Config",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/google/callback": {
+      "get": {
+        "operationId": "google_callback_api_auth_google_callback_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Error"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Google Callback",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/google/start": {
+      "get": {
+        "operationId": "google_start_api_auth_google_start_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "next",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Next"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Google Start",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "operationId": "logout_api_auth_logout_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Logout Api Auth Logout Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Logout",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/me": {
+      "delete": {
+        "description": "Remove the account and everything hanging off it.\n\nFeature tables declare ON DELETE CASCADE against users.id, so this is one\nstatement rather than a list that drifts as features are added.",
+        "operationId": "delete_account_api_auth_me_delete",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Delete Account Api Auth Me Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Delete Account",
+        "tags": [
+          "auth"
+        ]
+      },
+      "get": {
+        "operationId": "me_api_auth_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/UserOut"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Me Api Auth Me Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Me",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "stats"
+        ]
+      }
+    },
+    "/api/me/export": {
+      "get": {
+        "description": "Everything this account holds, as JSON. GDPR Art. 20 (portability).\n\nDeliberately the raw rows rather than a rendered view: the point is that\nthe data leaves in a form another tool can read, not that it looks nice.\n\nNote what is *not* here — the people on the map. Their entries are not this\nuser's personal data, and a saved list is exported as the opaque\n`person_key` plus whatever note the user wrote themselves. Exporting other\npeople's profiles because someone bookmarked them would turn a portability\nrequest into a data dump about third parties.",
+        "operationId": "export_my_data_api_me_export_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Export My Data Api Me Export Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Export My Data",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/api/me/people": {
+      "get": {
+        "description": "State only — the profiles themselves come from /api/profiles.",
+        "operationId": "list_people_api_me_people_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PersonStateOut"
+                  },
+                  "title": "Response List People Api Me People Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List People",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/api/me/people/{person_key}": {
+      "delete": {
+        "operationId": "clear_person_state_api_me_people__person_key__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "person_key",
+            "required": true,
+            "schema": {
+              "maxLength": 24,
+              "minLength": 8,
+              "pattern": "^[0-9a-f]+$",
+              "title": "Person Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Clear Person State Api Me People  Person Key  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Clear Person State",
+        "tags": [
+          "me"
+        ]
+      },
+      "put": {
+        "description": "Partial upsert: fields left unset keep their current value.",
+        "operationId": "set_person_state_api_me_people__person_key__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "person_key",
+            "required": true,
+            "schema": {
+              "maxLength": 24,
+              "minLength": 8,
+              "pattern": "^[0-9a-f]+$",
+              "title": "Person Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonStateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonStateOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Person State",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/api/me/profile": {
+      "get": {
+        "operationId": "get_my_profile_api_me_profile_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get My Profile",
+        "tags": [
+          "me"
+        ]
+      },
+      "put": {
+        "operationId": "put_my_profile_api_me_profile_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserProfileIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put My Profile",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/api/me/searches": {
+      "get": {
+        "operationId": "list_searches_api_me_searches_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SavedSearchOut"
+                  },
+                  "title": "Response List Searches Api Me Searches Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Searches",
+        "tags": [
+          "me"
+        ]
+      },
+      "post": {
+        "operationId": "create_search_api_me_searches_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavedSearchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedSearchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Search",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/api/me/searches/{search_id}": {
+      "delete": {
+        "operationId": "delete_search_api_me_searches__search_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "search_id",
+            "required": true,
+            "schema": {
+              "title": "Search Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Delete Search Api Me Searches  Search Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Search",
+        "tags": [
+          "me"
+        ]
+      },
+      "patch": {
+        "operationId": "update_search_api_me_searches__search_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "search_id",
+            "required": true,
+            "schema": {
+              "title": "Search Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavedSearchPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedSearchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Search",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/api/meta/interests": {
+      "get": {
+        "description": "Global counts, so the filter chips don't renumber as you filter.",
+        "operationId": "interest_counts_api_meta_interests_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InterestCount"
+                  },
+                  "title": "Response Interest Counts Api Meta Interests Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Interest Counts",
+        "tags": [
+          "stats"
+        ]
+      }
+    },
+    "/api/meta/sources": {
+      "get": {
+        "description": "Subreddits actually present in the data, biggest first.\n\nRead from the posts rather than from config, so a source that was ingested\nonce and later removed from the env still labels its own rows.",
+        "operationId": "source_counts_api_meta_sources_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LabelCount"
+                  },
+                  "title": "Response Source Counts Api Meta Sources Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Source Counts",
+        "tags": [
+          "stats"
+        ]
+      }
+    },
+    "/api/meta/writing-tips": {
+      "get": {
+        "description": "Measured gaps in the real corpus, for the post composer.\n\nEvery number here is computed from the live board. The app cannot say\nwhich posts *got replies* — Reddit's Atom feed carries no comment count\nand nothing stores one — so this deliberately reports what is missing\nrather than what \"works\". Advice the data cannot support isn't given.",
+        "operationId": "writing_tips_api_meta_writing_tips_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WritingTipsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Writing Tips",
+        "tags": [
+          "stats"
+        ]
+      }
+    },
+    "/api/profiles": {
+      "get": {
+        "operationId": "list_profiles_api_profiles_get",
+        "parameters": [
+          {
+            "description": "Days back; omit or 0 for all time",
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": 30,
+              "description": "Days back; omit or 0 for all time",
+              "title": "Period"
+            }
+          },
+          {
+            "in": "query",
+            "name": "age_min",
+            "required": false,
+            "schema": {
+              "default": 18,
+              "maximum": 120,
+              "minimum": 0,
+              "title": "Age Min",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "age_max",
+            "required": false,
+            "schema": {
+              "default": 70,
+              "maximum": 120,
+              "minimum": 0,
+              "title": "Age Max",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Comma list: M,F,NB,couple,unknown",
+            "in": "query",
+            "name": "genders",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma list: M,F,NB,couple,unknown",
+              "title": "Genders"
+            }
+          },
+          {
+            "description": "Comma list of interest slugs",
+            "in": "query",
+            "name": "interests",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma list of interest slugs",
+              "title": "Interests"
+            }
+          },
+          {
+            "in": "query",
+            "name": "interest_mode",
+            "required": false,
+            "schema": {
+              "default": "any",
+              "pattern": "^(any|all)$",
+              "title": "Interest Mode",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma list: nl,en",
+            "in": "query",
+            "name": "langs",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma list: nl,en",
+              "title": "Langs"
+            }
+          },
+          {
+            "description": "Comma list of province names",
+            "in": "query",
+            "name": "provinces",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma list of province names",
+              "title": "Provinces"
+            }
+          },
+          {
+            "description": "Comma list of subreddits, no 'r/'",
+            "in": "query",
+            "name": "sources",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma list of subreddits, no 'r/'",
+              "title": "Sources"
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
+          },
+          {
+            "description": "saved | contacted | hidden | none. Signed in only.",
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "saved | contacted | hidden | none. Signed in only.",
+              "title": "State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "newest",
+              "pattern": "^(newest|match)$",
+              "title": "Sort",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_hidden",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Hidden",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_events",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Events",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Profiles",
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
+    "/api/profiles/{post_id}": {
+      "get": {
+        "operationId": "get_profile_api_profiles__post_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "post_id",
+            "required": true,
+            "schema": {
+              "title": "Post Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Profile",
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
+    "/api/stats": {
+      "get": {
+        "operationId": "stats_api_stats_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Stats",
+        "tags": [
+          "stats"
+        ]
+      }
+    }
+  }
+}
