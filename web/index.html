@@ -7,6 +7,20 @@
          searchable. Mirrors the X-Robots-Tag the API sends. -->
     <meta name="robots" content="noindex, nofollow, noarchive" />
     <title>FriendMap NL</title>
+
+    <!-- Two overlapping map pins: "two people, one place". SVG first, because
+         it is one file for every size; the PNGs are the fallback for clients
+         that don't take an SVG icon, and 180 is what iOS wants for a home
+         screen. All four are generated from one geometry definition so they
+         cannot drift — see docs/make_icon.py. -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png" />
+    <!-- Matches the app background, so the mobile browser chrome doesn't
+         sit against it in a clashing colour. -->
+    <meta name="theme-color" content="#FAF6F0" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

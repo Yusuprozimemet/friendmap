@@ -1,3 +1,5 @@
+<img src="web/public/icon-512.png" alt="" width="76" align="left" hspace="14" vspace="4">
+
 # FriendMap NL
 
 A map-first browser over public posts from the Dutch friend-finding subreddits
@@ -5,8 +7,18 @@ A map-first browser over public posts from the Dutch friend-finding subreddits
 one, an LLM pulls out age / location / interests / a one-line summary, and the
 result is plotted on a map of the Netherlands.
 
-It's a browser, not a network: no accounts, no messaging, no saved lists. Every
-card links back to the original Reddit post.
+<br clear="left">
+
+It's a browser, not a network: **no messaging**, and nothing is ever sent to
+anyone on your behalf. Every card links back to the original Reddit post, which
+is where any actual conversation happens. Signing in is optional and adds only
+private, personal state — a saved list, notes to yourself, and email alerts for
+a search you saved. None of it is visible to anyone else, and none of it changes
+what the people on the map see, because they never signed up for any of this.
+
+The icon is two overlapping map pins — two people, one place. It's generated
+from a single geometry definition in [docs/make_icon.py](docs/make_icon.py),
+which emits the SVG and every PNG size, so they can't drift apart.
 
 ## Stack
 

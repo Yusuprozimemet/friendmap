@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="FriendMap NL">
+  <title>FriendMap NL</title>
+  <rect width="64" height="64" rx="14" fill="#FAF6F0"/>
+  <!-- back pin -->
+    <g fill="#B8752E">
+      <circle cx="44.5" cy="19.5" r="9.43"/>
+      <polygon points="44.50,40.20 36.11,23.80 52.89,23.80"/>
+    </g>
+    <circle cx="44.5" cy="19.5" r="3.68" fill="#FAF6F0"/>
+  <!-- front pin, drawn over it -->
+    <g fill="#2F7D6E">
+      <circle cx="23" cy="27" r="12.3"/>
+      <polygon points="23.00,54.00 12.05,32.60 33.95,32.60"/>
+    </g>
+    <circle cx="23" cy="27" r="4.8" fill="#FAF6F0"/>
+</svg>

@@ -50,9 +50,16 @@ export function AboutView({ subreddits }: { subreddits: string[] }) {
           </div>
         )}
         <div style={para}>
-          It's a browser, not a network. There's no messaging, no accounts, no
-          saved lists. Every card links straight back to the original Reddit post
-          — that's where any actual conversation happens.
+          It's a browser, not a network. There's no messaging, and nothing is
+          ever sent to anyone on your behalf. Every card links straight back to
+          the original Reddit post — that's where any actual conversation
+          happens.
+        </div>
+        <div style={para}>
+          Signing in is optional. It adds a saved list, private notes, and email
+          alerts for a search you saved — all of it visible only to you, and none
+          of it visible to the people on the map. You can delete your account and
+          everything attached to it at any time from your account page.
         </div>
 
         <div style={heading}>How current is this?</div>
