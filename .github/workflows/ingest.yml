@@ -85,9 +85,17 @@ jobs:
 
       - name: Run the daily job
         env:
-          IMAGE: ghcr.io/${{ github.repository }}:latest
+          # Lowercased, not used verbatim: `github.repository` preserves the
+          # owner's capitalisation ("Yusuprozimemet/friendmap") and Docker
+          # rejects any reference that isn't lowercase with "invalid reference
+          # format", exit 125, before it ever contacts the registry. CI's image
+          # job doesn't hit this because docker/metadata-action lowercases for
+          # you; interpolating the expression directly does not.
+          REPO: ${{ github.repository }}
           DAYS: ${{ inputs.days || '7' }}
         run: |
+          IMAGE="ghcr.io/$(printf '%s' "$REPO" | tr '[:upper:]' '[:lower:]'):latest"
+          echo "image: $IMAGE"
           docker run --rm \
             -e DATABASE_URL='${{ secrets.INGEST_DATABASE_URL }}' \
             -e NVIDIA_API_KEY='${{ secrets.NVIDIA_API_KEY }}' \
