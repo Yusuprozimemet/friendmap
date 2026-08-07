@@ -97,7 +97,7 @@ python manage.py purge [--days N]           # retention sweep, default RETENTION
 ```
 Reddit Atom feed ──► posts (raw text, never overwritten)
                         │
-                        ├─► LLM extractor (batched, 6/call) ──► profiles
+                        ├─► LLM extractor (batched, 8/call) ──► profiles
                         │                                        │
                         └─► gazetteer ────────────────────────► place
                                                                  │
@@ -109,6 +109,11 @@ Reddit Atom feed ──► posts (raw text, never overwritten)
 `posts` and `profiles` are separate on purpose. Re-running extraction with a
 better prompt costs API calls but never a re-scrape, and `regeocode` fixes a
 missing town without touching the LLM at all.
+
+**[docs/architecture.md](docs/architecture.md)** goes through the whole thing
+properly — the three planes and why they're decoupled, the ingest pipeline and
+which orderings are load-bearing, the data model, the read path, and a table of
+failure modes with how each is handled. Diagrams included.
 
 ### The daily job
 
