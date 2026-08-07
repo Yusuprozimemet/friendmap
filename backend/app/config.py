@@ -69,8 +69,15 @@ GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 OAUTH_REDIRECT_URL = os.getenv(
     "OAUTH_REDIRECT_URL", "http://localhost:5173/api/auth/google/callback"
 )
-# Where to land the browser after the round trip.
-WEB_ORIGIN = os.getenv("WEB_ORIGIN", "http://localhost:5173")
+# Where to land the browser after the round trip, and the base of every link in
+# an alert email.
+#
+# The trailing slash is stripped because everything downstream appends a path
+# beginning with one. Set to "https://host/" the unsubscribe links came out as
+# "https://host//api/alerts/unsubscribe", which routes to nothing — a 404 in
+# somebody's inbox, discovered only by clicking it. Cheaper to normalise here
+# than to require every operator to get it right by hand.
+WEB_ORIGIN = os.getenv("WEB_ORIGIN", "http://localhost:5173").rstrip("/")
 # Signs the session cookie. Rotating it logs everyone out, which is the
 # intended emergency lever.
 SESSION_SECRET = os.getenv("SESSION_SECRET", "")

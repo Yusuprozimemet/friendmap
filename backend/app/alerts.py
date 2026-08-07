@@ -100,7 +100,19 @@ def _body(
 
 def run_alerts(session: Session, now: datetime | None = None) -> int:
     """Send due digests. Returns the number of emails actually sent."""
-    if not config.AUTH_ENABLED:
+    # Gated on SESSION_SECRET, because that is what actually signs the
+    # unsubscribe tokens — without it every link in every digest would be
+    # unverifiable, so sending is worse than not sending.
+    #
+    # This used to check AUTH_ENABLED, which additionally requires the Google
+    # client id and secret. That silently disabled alerts entirely in the
+    # scheduled job: it runs the same image with only the database, mail and
+    # secret values set, never the OAuth pair, because it performs no OAuth.
+    # So this returned 0 on every run and no digest was ever sent, with
+    # nothing in the log to say why. Accounts can only exist if sign-in was
+    # configured at some point, and the query below returns nothing when there
+    # are none — so the OAuth credentials were never the right precondition.
+    if not config.SESSION_SECRET:
         return 0
 
     now = now or datetime.now(timezone.utc)

@@ -50,6 +50,12 @@ backend/logs/
 # on the machine that scraped it and out of a public repo.
 friends.json
 
+# Database dumps, for the same reason and more of it — a dump carries every
+# scraped post plus the users table. Easy to create in the repo root while
+# migrating between environments and easy to commit by accident.
+*.sql
+*.dump
+
 # --- editors / OS ---------------------------------------------------------
 .vscode/
 .idea/

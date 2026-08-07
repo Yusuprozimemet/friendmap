@@ -323,11 +323,31 @@ dependency, a type error, the static mount — without waiting on CI.
 
 6. **The daily job.** Render's cron jobs are paid, so
    `.github/workflows/ingest.yml` runs the same image on a schedule instead.
-   It needs repo secrets `INGEST_DATABASE_URL` (Render's **External** database
-   URL — the internal one only resolves inside Render's network),
-   `NVIDIA_API_KEY`, and the same `SESSION_SECRET`. On a paid plan, replace it
-   with a Render cron job running `ingest --days 7` against the same image,
-   delete that workflow, and close the database's `0.0.0.0/0` access rule.
+   Note which GitHub tab each value belongs in — the workflow reads them from
+   different namespaces, and a value in the wrong tab reads as *empty*, not as
+   missing:
+
+   | Actions **Secrets** | Actions **Variables** |
+   | --- | --- |
+   | `INGEST_DATABASE_URL` — Render's **External** URL; the internal one only resolves inside Render's network | `WEB_ORIGIN` — the site's origin, no trailing slash |
+   | `NVIDIA_API_KEY` | `MAIL_BACKEND` — `console` (default), `smtp` or `resend` |
+   | `SESSION_SECRET` — the *same* value as the web service's | `MAIL_FROM` — a sender the transport will accept |
+   | `PERSON_KEY_SECRET` — likewise | `SUBREDDITS` — optional, has a default |
+   | `RESEND_API_KEY` — if `MAIL_BACKEND=resend` | |
+
+   An unset *variable* interpolates to `''`, which overrides the app's own
+   default rather than falling through to it — so a missing `MAIL_FROM` reaches
+   the transport as an empty sender. The workflow's first step checks for this
+   and fails before sending anything, but only when a real mail backend is
+   selected.
+
+   Also note the alerts themselves are gated on `SESSION_SECRET`, not on
+   sign-in being configured: this job performs no OAuth and is never given the
+   Google credentials.
+
+   On a paid plan, replace all of it with a Render cron job running
+   `ingest --days 7` against the same image, delete that workflow, and close
+   the database's `0.0.0.0/0` access rule.
 
 ### Two things production needs that local doesn't
 

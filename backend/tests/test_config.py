@@ -46,3 +46,29 @@ def test_password_containing_the_prefix_is_not_mangled():
     """Only the scheme is rewritten — `startswith`, not a global replace."""
     url = "postgres://user:postgres://weird@host/db"
     assert _normalise_db_url(url) == "postgresql+psycopg://user:postgres://weird@host/db"
+
+
+# --- WEB_ORIGIN -----------------------------------------------------------
+# Everything downstream appends a path starting with "/", so a trailing slash
+# on the setting produced "https://host//api/alerts/unsubscribe" — a 404 that
+# only shows up when somebody clicks a link in an email.
+
+def test_web_origin_has_no_trailing_slash(monkeypatch):
+    import importlib
+
+    from app import config as config_module
+
+    for given, expected in [
+        ("https://example.onrender.com/", "https://example.onrender.com"),
+        ("https://example.onrender.com", "https://example.onrender.com"),
+        ("https://example.onrender.com///", "https://example.onrender.com"),
+        ("http://localhost:5173/", "http://localhost:5173"),
+    ]:
+        monkeypatch.setenv("WEB_ORIGIN", given)
+        reloaded = importlib.reload(config_module)
+        assert reloaded.WEB_ORIGIN == expected
+
+    # Leave the module as the rest of the suite expects it.
+    monkeypatch.delenv("WEB_ORIGIN", raising=False)
+    monkeypatch.setenv("WEB_ORIGIN", "http://testserver")
+    importlib.reload(config_module)

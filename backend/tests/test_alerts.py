@@ -9,9 +9,11 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 import pytest
+from sqlalchemy import func, select
 
-from app import alerts, config
-from app.models import SavedSearch
+from app import alerts, config, mail
+from app.models import AlertSent, SavedSearch
+from tests.conftest import make_post, make_profile, make_user
 
 NOW = datetime(2026, 8, 7, 6, 30, tzinfo=timezone.utc)
 
@@ -120,8 +122,157 @@ def test_naive_last_run_is_treated_as_utc():
 
 
 # --- the job --------------------------------------------------------------
+#
+# These build the whole precondition — user, saved search, matching profile —
+# because the bug this section exists for was an early `return 0` that every
+# cheaper test walked straight past.
 
-def test_run_alerts_is_a_no_op_when_auth_is_disabled(session):
-    """No accounts means no addresses to send to."""
-    assert config.AUTH_ENABLED is False
+def _due_search(session, user, **over):
+    fields = {
+        "user_id": user.id,
+        "name": "Climbers",
+        "filters": {},
+        "cadence": "daily",
+        "last_run_at": None,
+        "created_at": NOW,
+    }
+    fields.update(over)
+    row = SavedSearch(**fields)
+    session.add(row)
+    session.flush()
+    return row
+
+
+def _matching_person(session, reddit_id="alrt01", author="alice"):
+    post = make_post(session, reddit_id, author=author, days_ago=1)
+    return make_profile(session, post, age=30, interests=("hiking",))
+
+
+@pytest.fixture
+def sent(monkeypatch):
+    """Capture what would be mailed instead of sending it."""
+    box: list[tuple[str, str, str]] = []
+    monkeypatch.setattr(mail, "send", lambda to, subject, body: (
+        box.append((to, subject, body)) or True
+    ))
+    return box
+
+
+def test_a_due_search_with_a_match_sends_one_digest(session, sent):
+    """The regression test for the gate.
+
+    This is the scheduled job's exact situation: no Google credentials in the
+    environment (so AUTH_ENABLED is false), but a real account with a real
+    saved search that matches somebody. It must still send.
+    """
+    assert config.AUTH_ENABLED is False, "the ingest container never has OAuth set"
+
+    user = make_user(session, email="me@example.com")
+    _due_search(session, user)
+    _matching_person(session)
+    session.commit()
+
+    assert alerts.run_alerts(session, NOW) == 1
+    assert len(sent) == 1
+    to, subject, _ = sent[0]
+    assert to == "me@example.com"
+    assert "1 new person" in subject
+
+
+def test_no_digest_without_a_session_secret(session, sent):
+    """Unsubscribe links could not be signed, so sending is worse than not."""
+    user = make_user(session)
+    _due_search(session, user)
+    _matching_person(session)
+    session.commit()
+
+    original = config.SESSION_SECRET
+    try:
+        config.SESSION_SECRET = ""
+        assert alerts.run_alerts(session, NOW) == 0
+    finally:
+        config.SESSION_SECRET = original
+    assert sent == []
+
+
+def test_digest_body_links_are_well_formed(session, sent):
+    """No double slashes, whatever WEB_ORIGIN was set to."""
+    user = make_user(session)
+    search = _due_search(session, user)
+    _matching_person(session)
+    session.commit()
+
+    alerts.run_alerts(session, NOW)
+    _, _, body = sent[0]
+    assert "//api/alerts/unsubscribe" not in body
+    assert f"{config.WEB_ORIGIN}/api/alerts/unsubscribe?token=" in body
+    # And the token in the mail actually resolves to this search.
+    token = body.split("token=")[1].split()[0]
+    assert alerts.read_unsubscribe_token(token) == search.id
+
+
+def test_a_person_is_only_announced_once(session, sent):
+    """Second run has nothing new, so it must stay quiet."""
+    user = make_user(session)
+    _due_search(session, user)
+    _matching_person(session)
+    session.commit()
+
+    assert alerts.run_alerts(session, NOW) == 1
+    # A day later the same person is still matching, but already announced.
+    assert alerts.run_alerts(session, NOW + timedelta(days=1)) == 0
+    assert len(sent) == 1
+
+
+def test_a_failed_send_is_not_recorded_so_tomorrow_retries(session, monkeypatch):
+    """alerts_sent is written only after a successful hand-off."""
+    monkeypatch.setattr(mail, "send", lambda to, subject, body: False)
+
+    user = make_user(session)
+    _due_search(session, user)
+    _matching_person(session)
+    session.commit()
+
     assert alerts.run_alerts(session, NOW) == 0
+    assert session.scalar(select(func.count()).select_from(AlertSent)) == 0
+
+    # Transport recovers; the person is still owed an announcement.
+    box: list = []
+    monkeypatch.setattr(mail, "send", lambda to, subject, body: (
+        box.append(to) or True
+    ))
+    assert alerts.run_alerts(session, NOW + timedelta(days=1)) == 1
+
+
+def test_one_digest_per_user_not_per_search(session, sent):
+    """Three saved searches finding someone must not be three emails."""
+    user = make_user(session)
+    for i in range(3):
+        _due_search(session, user, name=f"search {i}")
+    _matching_person(session)
+    session.commit()
+
+    assert alerts.run_alerts(session, NOW) == 1
+    assert len(sent) == 1
+    assert "your saved searches" in sent[0][1]
+
+
+def test_last_run_advances_even_with_nothing_to_report(session, sent):
+    """Otherwise a quiet search re-runs on every job forever."""
+    user = make_user(session)
+    search = _due_search(session, user)
+    session.commit()  # no people at all
+
+    assert alerts.run_alerts(session, NOW) == 0
+    session.refresh(search)
+    assert search.last_run_at is not None
+
+
+def test_a_switched_off_search_is_left_alone(session, sent):
+    user = make_user(session)
+    _due_search(session, user, cadence="off")
+    _matching_person(session)
+    session.commit()
+
+    assert alerts.run_alerts(session, NOW) == 0
+    assert sent == []

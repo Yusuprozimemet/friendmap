@@ -43,6 +43,46 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Checked before the job runs, because every failure mode here is silent
+      # and lands in somebody's inbox rather than in this log. An unset GitHub
+      # *variable* interpolates to an empty string, which is not the same as
+      # being absent: it overrides the app's own default, so MAIL_FROM='' would
+      # reach Resend as an empty sender and be rejected with a 422 per
+      # recipient, and WEB_ORIGIN='' would produce unsubscribe links with no
+      # hostname at all.
+      #
+      # Only enforced when a real transport is selected; the default 'console'
+      # backend prints digests here and needs none of it.
+      - name: Check the mail configuration
+        env:
+          MAIL_BACKEND: ${{ vars.MAIL_BACKEND || 'console' }}
+          MAIL_FROM: ${{ vars.MAIL_FROM }}
+          WEB_ORIGIN: ${{ vars.WEB_ORIGIN }}
+        run: |
+          if [ "$MAIL_BACKEND" = "console" ]; then
+            echo "MAIL_BACKEND=console — digests print to this log, nothing is sent."
+            exit 0
+          fi
+
+          fail=0
+          if [ -z "$WEB_ORIGIN" ]; then
+            echo "::error::WEB_ORIGIN variable is empty. Alert emails would link to a bare path with no host. Set it to the site's origin, e.g. https://example.onrender.com"
+            fail=1
+          fi
+          case "$WEB_ORIGIN" in
+            */) echo "::error::WEB_ORIGIN ends in a slash. Links are built as \$WEB_ORIGIN/api/..., so this yields a double slash that routes to nothing. Remove the trailing slash." ; fail=1 ;;
+          esac
+          if [ -z "$MAIL_FROM" ]; then
+            echo "::error::MAIL_FROM variable is empty but MAIL_BACKEND=$MAIL_BACKEND. The transport will reject every message. Set it to a verified sender."
+            fail=1
+          fi
+          if [ "$MAIL_BACKEND" = "resend" ] && [ -z "${{ secrets.RESEND_API_KEY }}" ]; then
+            echo "::error::MAIL_BACKEND=resend but the RESEND_API_KEY secret is not set."
+            fail=1
+          fi
+          [ "$fail" = 0 ] || exit 1
+          echo "Mail configuration looks sane: backend=$MAIL_BACKEND origin=$WEB_ORIGIN"
+
       - name: Run the daily job
         env:
           IMAGE: ghcr.io/${{ github.repository }}:latest
