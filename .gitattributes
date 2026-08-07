@@ -1,0 +1,24 @@
+# Normalise to LF in the repo, and check out LF for the files where the ending
+# is load-bearing. Two of those here, both already burned once:
+#
+#   *.sh   — a CRLF shebang makes Linux look for "/bin/sh\r" and fail with a
+#            bare "no such file or directory" that names the interpreter, not
+#            the script. This breaks the container entrypoint.
+#   *.cmd  — the opposite: with LF, cmd.exe eats the first character of every
+#            line (`setlocal` -> `etlocal`) and still exits 0. See README.
+* text=auto
+
+*.sh   text eol=lf
+*.cmd  text eol=crlf
+*.bat  text eol=crlf
+
+Dockerfile text eol=lf
+*.py   text eol=lf
+*.ts   text eol=lf
+*.tsx  text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+
+*.png binary
+*.jpg binary
+*.pdf binary

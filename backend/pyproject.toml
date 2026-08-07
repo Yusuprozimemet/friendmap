@@ -1,0 +1,69 @@
+# Tooling config for the backend. Not a package — the app runs from this
+# directory (`python manage.py …`), so there's no [project] table and nothing
+# here is installable. Ruff and pytest are the only consumers.
+
+[tool.ruff]
+# 100 rather than the default 88: the existing code sits comfortably under 100
+# and reflowing ~20 files to satisfy a linter added afterwards would bury the
+# real history in whitespace. New code should still aim for ~88.
+line-length = 100
+target-version = "py312"
+extend-exclude = [".venv", "logs"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes — unused imports/names, the ones that are always bugs
+    "I",    # isort — import order, so diffs don't churn on it
+    "UP",   # pyupgrade — this targets 3.12 only, no back-compat to keep
+    "B",    # bugbear — mutable defaults, `except` shadowing, loop-variable capture
+    "C4",   # comprehension rewrites
+    "RUF",  # ruff's own checks
+]
+
+ignore = [
+    # `datetime.UTC` over `timezone.utc`. Both are correct on 3.12 and the
+    # codebase uses `timezone.utc` throughout; rewriting 20-odd call sites to
+    # satisfy a linter added afterwards is churn, not a fix.
+    "UP017",
+    # Flags ×, →, — in docstrings as "ambiguous unicode". They're deliberate
+    # here (the comments describe UI copy that uses them) and the suggested
+    # ASCII replacements would be wrong.
+    "RUF002",
+    "RUF003",
+]
+
+[tool.ruff.lint.flake8-bugbear]
+# B008 forbids function calls in argument defaults, which is exactly how
+# FastAPI declares dependencies (`session: Session = Depends(get_session)`).
+# Without this the rule fires on every route in the app.
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Body",
+    "fastapi.Header",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests deliberately import fixtures for their side effects and assert on
+# private helpers (`_coerce`, `_parse`), which is the point — those are where
+# the parsing rules live.
+"tests/*" = ["E501"]
+
+[tool.ruff.lint.isort]
+# `app` and `ingest` are the local packages; without this ruff sorts them in
+# with site-packages and every import block churns.
+known-first-party = ["app", "ingest"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# `app`/`ingest` are imported as top-level packages (manage.py inserts the
+# backend dir on sys.path); this does the same for pytest.
+pythonpath = ["."]
+addopts = "-q --strict-markers"
+filterwarnings = [
+    "error::DeprecationWarning:app.*",
+    "error::DeprecationWarning:ingest.*",
+]

@@ -1,0 +1,36 @@
+# Secrets first — .env holds live API keys and must never reach an image layer.
+.env
+*.env
+!.env.example
+
+.git
+.gitignore
+.github
+
+web/node_modules
+web/dist
+web/tsconfig.tsbuildinfo
+
+backend/.venv
+backend/logs
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.ruff_cache
+
+# Test and lint machinery. The runtime installs requirements.txt only, so none
+# of this is runnable in the image — shipping it would just be dead weight in a
+# layer, and it changes on every test edit, busting the cache below it.
+backend/tests
+backend/requirements-dev.txt
+backend/pyproject.toml
+web/eslint.config.js
+web/src/**/*.test.ts
+web/src/testing.ts
+
+# Docs and one-off artefacts: they change constantly and would bust the cache
+# for no gain.
+*.md
+!README.md
+FriendMap NL (standalone).html
+docker-compose.yml

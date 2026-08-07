@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: friendmap-db
+    environment:
+      POSTGRES_USER: friendmap
+      POSTGRES_PASSWORD: friendmap
+      POSTGRES_DB: friendmap
+    ports:
+      - "5433:5432"   # 5433 on the host so a local Postgres install can coexist
+    volumes:
+      - friendmap-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U friendmap -d friendmap"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # The production image, locally. Behind a profile so the default
+  # `docker compose up -d` still brings up only the database for dev work:
+  #   docker compose --profile app up --build
+  # Then http://localhost:8000 — the built bundle, served by FastAPI, exactly
+  # as Render will serve it. Worth running before every deploy; it catches the
+  # things dev mode hides (a missing dep, a build-time type error, the static
+  # mount) without waiting on CI.
+  app:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: friendmap-app
+    ports:
+      - "8000:8000"
+    environment:
+      # `db` on the compose network, port 5432 — not the 5433 host mapping.
+      DATABASE_URL: postgresql+psycopg://friendmap:friendmap@db:5432/friendmap
+      WEB_ORIGIN: http://localhost:8000
+      OAUTH_REDIRECT_URL: http://localhost:8000/api/auth/google/callback
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  friendmap-pgdata:

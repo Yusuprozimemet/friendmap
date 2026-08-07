@@ -1,0 +1,45 @@
+// Flat config (ESLint 9). Deliberately close to the Vite React-TS default:
+// the rules that earn their place here are the ones catching mistakes `tsc`
+// can't see — stale hook dependencies above all, since a missing dep shows up
+// as a panel that just doesn't update and nothing at all in the console.
+import js from "@eslint/js";
+import globals from "globals";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
+import tseslint from "typescript-eslint";
+
+export default tseslint.config(
+  { ignores: ["dist", "node_modules", "coverage"] },
+  {
+    files: ["**/*.{ts,tsx}"],
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    languageOptions: {
+      ecmaVersion: 2022,
+      globals: globals.browser,
+    },
+    plugins: {
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh,
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      // Warn, not error: an exported constant next to a component breaks fast
+      // refresh but is not a bug worth failing CI over.
+      "react-refresh/only-export-components": [
+        "warn",
+        { allowConstantExport: true },
+      ],
+      // `noUnusedLocals` in tsconfig already covers this and reports it at
+      // build time; leaving both on double-reports every hit.
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
+  },
+  {
+    // Node context, not browser.
+    files: ["*.config.{js,ts}", "vite.config.ts"],
+    languageOptions: { globals: globals.node },
+  },
+);
