@@ -104,7 +104,10 @@ def render(size, ss=4):
                     y = (py + (sy + 0.5) / ss) * BOX / size
                     c = sample(x, y)
                     if c is not None:
-                        r += c[0]; g += c[1]; b += c[2]; a += 255
+                        r += c[0]
+                        g += c[1]
+                        b += c[2]
+                        a += 255
             n = ss * ss
             if a:
                 # Un-premultiply so edge pixels keep their hue.
@@ -134,7 +137,7 @@ def write_png(path, size):
 
 
 def hexc(c):
-    return "#%02X%02X%02X" % c
+    return "#{:02X}{:02X}{:02X}".format(*c)
 
 
 def pin_svg(pin, colour):

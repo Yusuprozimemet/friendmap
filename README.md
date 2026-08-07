@@ -294,6 +294,46 @@ Art. 14(5)(b) for individual notice.
 **Still outstanding:** no data-processing agreement with NVIDIA or Resend, which
 receive post text and email addresses respectively.
 
+### If you run this yourself, you are the controller
+
+Not the author of this repository. The moment you point it at a database and
+give it an API key, **you** decide the purposes and means of the processing,
+which is what Art. 4(7) GDPR defines a controller as. Cloning the code
+transfers that to you along with it.
+
+That is not a formality. This app collects and structures personal data about
+people who never submitted it and do not know it exists — several hundred of
+them within a week of running. Before you expose it to anyone but yourself:
+
+1. **Set `CONTROLLER_NAME` and `PRIVACY_CONTACT`.** `/privacy` refuses to name a
+   controller until you do — it says the deployment is unconfigured instead of
+   inventing one. That is a deliberate blocker, not a bug. The contact has to be
+   an address you actually read: Art. 12(3) gives you one month to answer.
+2. **Read [the LIA](docs/legitimate-interest-assessment.md)** and decide whether
+   you agree with it. It lists the tripwires that would make the processing
+   indefensible — making the site indexable, adding any way to contact a person
+   from inside the app, extending the vocabulary to health or sexuality,
+   publishing usernames. Those are load-bearing, not stylistic.
+3. **Decide what you do about minors.** Age is extracted and some posters are
+   under 18. This code treats them like anyone else, by omission rather than by
+   decision. Yours to make deliberately.
+4. **Know the removal command before you need it**, not after:
+   `manage.py suppress --post <url> --reason "..."`. It works because the
+   suppression survives the next scrape; deleting a row does not.
+5. **Sign DPAs** with whichever inference and mail providers you use. Post text
+   goes to the LLM provider; email addresses go to the mail provider.
+
+Running it **privately** — on your own machine, not published, for your own use
+— is a materially different position, with a reasonable claim to the household
+exemption in Art. 2(2)(c). Publishing it to anyone else is not, and that is
+where the list above starts applying.
+
+The distributed image contains code and an empty schema. It ships no personal
+data, and neither does this repository: the sample entries in
+`FriendMap NL (standalone).html` are fabricated design data — verified by
+checking every title and body fragment against a real 934-post corpus with zero
+matches, and their permalinks are placeholders.
+
 ## Deploying to Render
 
 One container, one origin. The web app calls the API on relative `/api` paths

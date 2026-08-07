@@ -64,8 +64,11 @@ jobs:
       - name: Install
         run: pip install -r requirements-dev.txt
 
+      # ../docs holds the helper scripts (icon generator, the repo's
+      # no-personal-data check). They live outside backend/ but are still Python
+      # this project maintains, so they get linted rather than rotting quietly.
       - name: Lint
-        run: ruff check --output-format github .
+        run: ruff check --output-format github . ../docs
 
       # No DATABASE_URL here on purpose: tests/conftest.py points the engine at
       # a temporary SQLite file, and letting the environment override that would
