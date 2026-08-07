@@ -94,6 +94,36 @@ python manage.py purge [--days N]           # retention sweep, default RETENTION
 
 ## How it fits together
 
+Three deliberately decoupled planes. **Ingest writes, serve reads, and Postgres
+is the only thing they share** — the serving side never calls Reddit or the LLM,
+which is why a page load is fast while extraction is slow and rate-limited, and
+why the site keeps working when the ingest breaks. It just stops getting fresher.
+
+<p align="center">
+  <img src="docs/architecture-isometric.png" width="900"
+       alt="Isometric diagram of three planes. Ingest, a scheduled batch job on
+            GitHub Actions at 06:30 UTC: Reddit Atom feeds and a static
+            gazetteer feed a scraper, then an NVIDIA NIM extractor. Data, the
+            shared interface: one PostgreSQL database of 11 tables holding raw
+            posts and interpreted profiles. Serve, a long-lived container:
+            FastAPI and uvicorn host both the API under /api and the React
+            bundle from the root, single-origin with no CORS, auth by signed
+            cookie, client-side caching via TanStack Query.">
+</p>
+
+<p align="center">
+  <img src="docs/architecture.png" width="900"
+       alt="Flat summary of the same three planes annotated with the reasons
+            behind them: extraction heals itself because the next run
+            re-processes any post with no profile yet; posts and profiles are
+            split between raw scrape and LLM interpretation; there is no people
+            table because people are grouped by author at query time; clustering
+            is a frontend concern at 26px of screen space so zooming pulls
+            clusters apart.">
+</p>
+
+The precise version, and the one that stays searchable:
+
 ```
 Reddit Atom feed ──► posts (raw text, never overwritten)
                         │
