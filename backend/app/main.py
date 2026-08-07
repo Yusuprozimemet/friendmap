@@ -134,6 +134,12 @@ if (_DIST / "index.html").is_file():
     # are no client-side routes needing a catch-all rewrite.
     app.mount("/", StaticFiles(directory=str(_DIST), html=True), name="web")
 else:
-    @app.get("/")
+    # include_in_schema=False because whether this route exists depends on
+    # whether the bundle has been built, and the OpenAPI document is committed
+    # and diffed in CI. Without this the schema gained a path when generated
+    # from a checkout with no web/dist — making the artefact environment-
+    # dependent, which is useless as something to compare against. It is also a
+    # dev fallback rather than part of the API, like /healthz and /robots.txt.
+    @app.get("/", include_in_schema=False)
     def root():
         return {"app": "FriendMap NL", "docs": "/docs"}
