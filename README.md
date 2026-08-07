@@ -1,13 +1,29 @@
-<img src="web/public/icon-512.png" alt="" width="76" align="left" hspace="14" vspace="4">
+<p align="center">
+  <img src="web/public/icon-512.png" alt="" width="88">
+</p>
 
-# FriendMap NL
+<h1 align="center">FriendMap NL</h1>
 
-A map-first browser over public posts from the Dutch friend-finding subreddits
-(r/makenewfriendsNL and r/Vriendenmaken by default). A daily job scrapes each
-one, an LLM pulls out age / location / interests / a one-line summary, and the
-result is plotted on a map of the Netherlands.
+<p align="center">
+  A map-first browser over public posts from the Dutch friend-finding subreddits
+  (r/makenewfriendsNL and r/Vriendenmaken by default). A daily job scrapes each
+  one, an LLM pulls out age / location / interests / a one-line summary, and the
+  result is plotted on a map of the Netherlands.
+</p>
 
-<br clear="left">
+<p align="center">
+  <img src="docs/screenshot.png" width="900"
+       alt="The Explore tab: a filter rail on the left for period, source and
+            province; the Netherlands in the middle with counted cluster
+            markers, and an offshore group labelled 'no location given' for
+            people who never said where they are; the matching people listed
+            on the right.">
+</p>
+
+<p align="center">
+  <sub>The person list is pixelated on purpose — those are real people's posts.
+  See <a href="#personal-data">Personal data</a>.</sub>
+</p>
 
 It's a browser, not a network: **no messaging**, and nothing is ever sent to
 anyone on your behalf. Every card links back to the original Reddit post, which

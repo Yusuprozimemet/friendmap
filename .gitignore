@@ -56,6 +56,14 @@ friends.json
 *.sql
 *.dump
 
+# Raw, un-redacted screenshots. A screenshot of the Explore tab shows real
+# people's post titles verbatim, and a verbatim title is searchable. Only the
+# pixelated docs/screenshot.png is committed; run docs/redact_screenshot.py to
+# produce it from a raw capture, and keep the capture out of the repo.
+docs/image.png
+docs/*-raw.png
+docs/*-redacted.png
+
 # --- editors / OS ---------------------------------------------------------
 .vscode/
 .idea/
