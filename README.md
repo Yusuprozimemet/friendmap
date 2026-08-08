@@ -5,10 +5,7 @@
 <h1 align="center">FriendMap NL</h1>
 
 <p align="center">
-  A map-first browser over public posts from the Dutch friend-finding subreddits
-  (r/makenewfriendsNL and r/Vriendenmaken by default). A daily job scrapes each
-  one, an LLM pulls out age / location / interests / a one-line summary, and the
-  result is plotted on a map of the Netherlands.
+  <b>A map-first browser over the Dutch friend-finding subreddits. Run your own.</b>
 </p>
 
 <p align="center">
@@ -25,12 +22,44 @@
   See <a href="#personal-data">Personal data</a>.</sub>
 </p>
 
+r/makenewfriendsNL and r/Vriendenmaken are a wall of text. The information you
+actually want — how old someone is, which city, what they're into — is buried in
+prose, and there's no way to ask *"who near Utrecht is into climbing?"*
+
+FriendMap NL is one Docker image that answers that. A daily job walks each
+subreddit's Atom feed, an LLM pulls out age, location, interests and a one-line
+summary, and everything lands on a hand-drawn map of the Netherlands. Filter by
+period, source, province. Clusters break apart as you zoom. People who never
+named a city get their own offshore tray instead of being silently guessed into
+Amsterdam. Every card links back to the original post — that's where the
+conversation happens.
+
 It's a browser, not a network: **no messaging**, and nothing is ever sent to
-anyone on your behalf. Every card links back to the original Reddit post, which
-is where any actual conversation happens. Signing in is optional and adds only
-private, personal state — a saved list, notes to yourself, and email alerts for
-a search you saved. None of it is visible to anyone else, and none of it changes
-what the people on the map see, because they never signed up for any of this.
+anyone on your behalf. Signing in is optional and adds only private, personal
+state — a saved list, notes to yourself, and email alerts for a search you
+saved. None of it is visible to anyone else, and none of it changes what the
+people on the map see, because they never signed up for any of this.
+
+**Built for the awkward part.** Most of the personal data here belongs to people
+who never submitted it. That shaped the code, not a policy page: usernames never
+leave the backend, no health / sexuality / religion / politics is ever inferred,
+the whole thing is `noindex` with no third-party requests at all, retention is
+enforced at 180 days, and erasure is recorded so tomorrow's scrape can't undo
+it. [Personal data](#personal-data) goes through all of it.
+
+**If you run it, you are the controller** — not the author of this repository.
+The privacy page refuses to name one until you set it. That's a deliberate
+blocker, and [the reasoning is here](#if-you-run-this-yourself-you-are-the-controller).
+
+**There is no public instance to visit.** This is distributed as software you
+run yourself:
+
+```bash
+docker compose --profile app up --build     # http://localhost:8000
+```
+
+`ghcr.io/yusuprozimemet/friendmap:latest` · Python + FastAPI + React · 440 tests
+· MIT — read [the LIA](docs/legitimate-interest-assessment.md) first.
 
 The icon is two overlapping map pins — two people, one place. It's generated
 from a single geometry definition in [docs/make_icon.py](docs/make_icon.py),
@@ -44,7 +73,7 @@ which emits the SVG and every PNG size, so they can't drift apart.
 | DB     | Postgres 16 in Docker                                       |
 | API    | FastAPI + SQLAlchemy 2.0                                    |
 | Web    | React 18 + TypeScript + Vite, hand-drawn SVG map            |
-| Deploy | One Docker image (bundle + API) → GHCR → Render             |
+| Deploy | One Docker image (bundle + API) → GHCR → your own host       |
 
 ## Running it locally
 
@@ -389,7 +418,18 @@ data, and neither does this repository: the sample entries in
 checking every title and body fragment against a real 934-post corpus with zero
 matches, and their permalinks are placeholders.
 
-## Deploying to Render
+## Hosting it yourself
+
+Nobody runs this for you — there is no public instance, by design. What follows
+is a worked example on Render's free tier, because that's what it was built
+against and every value is one someone actually had to get right. The image runs
+anywhere that takes a container and a Postgres; substitute your host and the
+shape holds.
+
+Before any of it, read
+[If you run this yourself, you are the controller](#if-you-run-this-yourself-you-are-the-controller).
+Publishing this to anyone but yourself is the step that makes it your
+obligation, and it starts the moment the host assigns you a URL.
 
 One container, one origin. The web app calls the API on relative `/api` paths
 and the session cookie is `SameSite=Lax`, so hosting the bundle separately
@@ -406,8 +446,9 @@ push to main ──► GitHub Actions ──► ghcr.io/yusuprozimemet/friendmap
                      runs the same image: `ingest --days 7`
 ```
 
-Render never sees this source tree — it pulls what CI published, which is the
-same artefact the smoke test ran against.
+The host never sees this source tree — it pulls what CI published, which is the
+same artefact the smoke test ran against. Fork the repo and the same pipeline
+publishes an image under your own account.
 
 ### Try the real image first
 
@@ -558,7 +599,7 @@ Dockerfile fails before merge.
 ### Tests
 
 ```bash
-cd backend && pytest                 # 345 tests, ~3s
+cd backend && pytest                 # 381 tests, ~3s
 cd backend && ruff check .
 cd web && npm test                   # 59 tests
 cd web && npm run lint && npm run typecheck
