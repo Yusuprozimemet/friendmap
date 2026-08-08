@@ -99,46 +99,50 @@ is the only thing they share** — the serving side never calls Reddit or the LL
 which is why a page load is fast while extraction is slow and rate-limited, and
 why the site keeps working when the ingest breaks. It just stops getting fresher.
 
-<p align="center">
-  <img src="docs/architecture-isometric.png" width="900"
-       alt="Isometric diagram of three planes. Ingest, a scheduled batch job on
-            GitHub Actions at 06:30 UTC: Reddit Atom feeds and a static
-            gazetteer feed a scraper, then an NVIDIA NIM extractor. Data, the
-            shared interface: one PostgreSQL database of 11 tables holding raw
-            posts and interpreted profiles. Serve, a long-lived container:
-            FastAPI and uvicorn host both the API under /api and the React
-            bundle from the root, single-origin with no CORS, auth by signed
-            cookie, client-side caching via TanStack Query.">
-</p>
+```mermaid
+flowchart TB
+  subgraph ingest["INGEST — GitHub Actions, 06:30 UTC · writes only"]
+    direction LR
+    RD["Reddit<br/>Atom feeds"] --> SC["scraper<br/>pages to the cutoff"]
+    SC --> UP["store.upsert<br/>skips suppressed"]
+    UP --> EX["extractor<br/>NVIDIA NIM, batches of 8"]
+    EX --> GZ["places<br/>static gazetteer, 141 entries"]
+  end
 
-<p align="center">
-  <img src="docs/architecture.png" width="900"
-       alt="Flat summary of the same three planes annotated with the reasons
-            behind them: extraction heals itself because the next run
-            re-processes any post with no profile yet; posts and profiles are
-            split between raw scrape and LLM interpretation; there is no people
-            table because people are grouped by author at query time; clustering
-            is a frontend concern at 26px of screen space so zooming pulls
-            clusters apart.">
-</p>
+  subgraph data["DATA — the only thing the planes share"]
+    PG[("Postgres · 11 tables<br/>posts = raw scrape<br/>profiles = LLM interpretation")]
+  end
 
-The precise version, and the one that stays searchable:
+  subgraph serve["SERVE — one long-lived container · reads only"]
+    direction LR
+    BR["Browser"] --> RL["rate limit<br/>token bucket per IP"]
+    RL --> AP["FastAPI /api/*"]
+    AP --> SR["search.run<br/>the one filter implementation"]
+    BR --> ST["React bundle<br/>served from / by the same app"]
+  end
 
-```
-Reddit Atom feed ──► posts (raw text, never overwritten)
-                        │
-                        ├─► LLM extractor (batched, 8/call) ──► profiles
-                        │                                        │
-                        └─► gazetteer ────────────────────────► place
-                                                                 │
-                                    FastAPI ◄────────────────────┘
-                                       │
-                                    React app
+  GZ --> PG
+  PG --> SR
+
+  style ingest fill:#F8E9D6,stroke:#E3C9A6
+  style data fill:#F5F0E6,stroke:#DCD3C4
+  style serve fill:#E4F0EC,stroke:#A9CFC5
 ```
 
-`posts` and `profiles` are separate on purpose. Re-running extraction with a
-better prompt costs API calls but never a re-scrape, and `regeocode` fixes a
-missing town without touching the LLM at all.
+Four consequences of that shape, each load-bearing:
+
+- **`posts` and `profiles` are separate tables.** Re-running extraction with a
+  better prompt costs API calls but never a re-scrape, and `regeocode` fixes a
+  missing town without touching the LLM at all.
+- **Extraction heals itself.** It selects posts with *no profile yet*, not
+  posts inserted today, so a batch that failed to a timeout is retried by the
+  next run instead of being invisible forever.
+- **There is no `people` table.** People are grouped by author at query time, so
+  the grouping can't drift from the posts it summarises. `person_key` is a keyed
+  HMAC of the username, which is why saves survive a repost without the username
+  ever being served.
+- **One origin.** FastAPI serves the API *and* the bundle, so the browser needs
+  no CORS and the session cookie no cross-site relaxation.
 
 **[docs/architecture.md](docs/architecture.md)** goes through the whole thing
 properly — the three planes and why they're decoupled, the ingest pipeline and
